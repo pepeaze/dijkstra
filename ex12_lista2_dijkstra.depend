@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1525458384 source:/home/pedro/Doutorado/Disciplinas/Teoria dos Grafos/2017-2/Lista de Exercícios/Ex12_Lista2/ex12_lista2_dijkstra/main.cpp
+	<stdio.h>
+	<iostream>
+	<vector>
+	<fstream>
+	<iomanip>
+	<string>
+	<sstream>
+	<stdlib.h>
+
