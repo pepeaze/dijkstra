@@ -16,6 +16,7 @@ struct type_graph{
 };
 typedef struct type_graph t_graph;
 #define new_node (t_graph*)malloc(sizeof(t_graph))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 using namespace std;
 
 int* alloc_array (int graph_size){
@@ -24,9 +25,9 @@ int* alloc_array (int graph_size){
     return a;
 }
 
-void dijkstra (t_graph** adjacent_list, int graph_size){
+int* dijkstra (t_graph** adjacent_list, int graph_size, int vertex_ini){
 
-    int *distancia, *fechado, *aberto, *anterior, v_ini = 0, abertos, k;
+    int *distancia, *fechado, *aberto, *anterior, v_ini = vertex_ini, abertos, k, inf = INT_MAX/2, maior = INT_MAX, custo;
     distancia = alloc_array (graph_size);
     fechado = alloc_array (graph_size);
     aberto = alloc_array (graph_size);
@@ -36,7 +37,7 @@ void dijkstra (t_graph** adjacent_list, int graph_size){
         if(i == v_ini)
             distancia[i] = 0;
         else
-            distancia[i] = INT_MAX;
+            distancia[i] = inf;
     }
 
     for(int i = 0; i<graph_size; i++){
@@ -62,12 +63,39 @@ void dijkstra (t_graph** adjacent_list, int graph_size){
     }
 
     while (abertos != graph_size){
+        if(abertos==1)
+            k=v_ini;
+        else{
+            for (int i=0; i<graph_size; i++){
+                if(aberto[i]==1 && distancia[i]<maior){
+                    maior = distancia[i];
+                    k=i;
+                }
+            }
+        }
+        if(abertos!=1){
+            aberto[k] = 0;
+            fechado[k] = 1;
+        }
 
-
+        for(t_graph* p = adjacent_list[k]; p!=NULL; p = p->prox){
+            if(aberto[p->vertex]!=0){
+                custo = MIN (distancia[p->vertex], (distancia[k]+p->cost));
+                if(custo < distancia[p->vertex]){
+                    distancia[p->vertex] = custo;
+                    anterior[p->vertex] = k;
+                }
+            }
+        }
+        abertos ++;
+        maior = INT_MAX;
     }
 
+    for(int j=0;j<graph_size;j++)
+        cout<<anterior[j]+1<<" ";
+    getchar();
 
-
+    return (distancia);
 }
 
 void print_list(t_graph *graph){
@@ -85,11 +113,11 @@ t_graph** add_to_list(t_graph **adjacent_list, int u, int v, int w){
     c->cost = w;
     c->prox = NULL;
 
-    if(adjacent_list[u-1] == NULL){
-        adjacent_list[u-1] = c;
+    if(adjacent_list[u] == NULL){
+        adjacent_list[u] = c;
     }
     else{
-        p = adjacent_list[u-1];
+        p = adjacent_list[u];
         while ( p -> prox != NULL ){
             p = p -> prox;
         }
@@ -99,11 +127,11 @@ t_graph** add_to_list(t_graph **adjacent_list, int u, int v, int w){
     d->vertex = u;
     d->cost = w;
     d->prox = NULL;
-    if(adjacent_list[v-1] == NULL){
-        adjacent_list[v-1] = d;
+    if(adjacent_list[v] == NULL){
+        adjacent_list[v] = d;
     }
     else{
-        p = adjacent_list[v-1];
+        p = adjacent_list[v];
         while ( p -> prox != NULL ){
             p = p -> prox;
         }
@@ -119,6 +147,8 @@ int main(){
     int graph_size;
     t_graph edge;
     t_graph **adjacent_list;
+    int **distance_matrix;
+    int *distance;
     FILE *f;
     int u, v, w, i;
 
@@ -129,16 +159,35 @@ int main(){
     for(i=0; i<graph_size;i++){
         adjacent_list[i] = NULL;
     }
+    distance_matrix = (int**)malloc(graph_size*sizeof(int*));
+    for(int i=0;i<graph_size;i++)
+        distance_matrix[i] = (int*)malloc(graph_size*sizeof(int));
     //while (fgetc(f) != '\n');
     while (fscanf(f, "%d %d %d", &u, &v, &w) == 3){
         adjacent_list = add_to_list(adjacent_list, u, v, w);
     }
 
     for(int i=0; i<graph_size;i++){
-        printf("Vertex %d\t", i+1);
+        printf("Vertex %d\t", i);
         print_list(adjacent_list[i]);
         printf("\n");
     }
 
-    dijkstra (adjacent_list, graph_size);
+    for(int i=0; i<graph_size; i++){
+        distance = dijkstra (adjacent_list, graph_size, i);
+        for(int j=0;j<graph_size;j++)
+            distance_matrix[i][j] = distance[j];
+        free(distance);
+
+    }
+    printf("\n");
+
+    for(int i=0;i<graph_size;i++){
+        for(int j=0;j<graph_size;j++){
+            cout<<distance_matrix[i][j]<<"\t";
+        }
+        cout<<"\n";
+    }
+
+
 }
